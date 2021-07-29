@@ -38,7 +38,9 @@
 					<div class="wpallimport-collapsed wpallimport-section">
 						<div class="wpallimport-content-section" style="overflow: hidden; padding-bottom: 0;">
 							<div class="wpallimport-collapsed-header" style="margin-bottom: 15px;">
-								<?php if ( $post_type == 'taxonomies' ){ ?>
+                                <?php if ( in_array($post_type, ['comments', 'reviews'] ) ){ ?>
+                                    <h3><?php _e('Comment', 'wp_all_import_plugin'); ?></h3>
+                                <?php } elseif ( $post_type == 'taxonomies' ){ ?>
 									<h3><?php _e('Name & Description', 'wp_all_import_plugin'); ?></h3>
 								<?php } elseif ( $post_type == 'product'){ ?>
 									<h3><?php _e('Title & Description', 'wp_all_import_plugin'); ?></h3>
@@ -49,11 +51,13 @@
 							<div class="wpallimport-collapsed-content" style="padding: 0;">				
 								
 								<div style="padding: 15px 25px 65px;">
+                                    <?php if ( !in_array($post_type, ['comments', 'reviews']) ): ?>
 									<div id="titlediv" style="margin-bottom:20px;">
 										<div id="titlewrap">
 											<input id="wpallimport-title" class="widefat" type="text" name="title" value="<?php echo esc_attr($post['title']) ?>" placeholder="<?php _e('Drag & drop any element on the right to set the title.', 'wp_all_import_plugin'); ?>"/>
 										</div>
 									</div>
+                                    <?php endif; ?>
 									
 									<div id="poststuff" style="margin-top:-25px;">
 										<div id="<?php echo user_can_richedit() ? 'postdivrich' : 'postdiv'; ?>" class="postarea">
@@ -98,7 +102,7 @@
 													<input type="hidden" name="is_leave_html" value="0" />
 													<input type="checkbox" id="is_leave_html" name="is_leave_html" class="fix_checkbox" value="1" <?php echo $post['is_leave_html'] ? 'checked="checked"' : '' ?> style="position:relative;"/>
 													<label for="is_leave_html"><?php _e('Decode HTML entities with <b>html_entity_decode</b>', 'wp_all_import_plugin') ?></label>
-													<a class="wpallimport-help" href="#help" style="position:relative; top:1px;" original-title="If HTML code is showing up in your posts, use this option. You can also use <br /><br /><i>[html_entity_decode({my/xpath})]</i><br /><br /> or <br /><br /><i>[htmlentities({my/xpath})]</i><br /><br /> or <br /><br /><i>[htmlspecialchars_decode({my/xpath})]</i><br /><br /> to decode or encode HTML in your file.">?</a>								
+                                                    <a class="wpallimport-help" href="#help" style="position:relative; top:1px;" title="If HTML code is showing up in your posts, use this option. You can also use <br /><br /><i>[html_entity_decode({my/xpath})]</i><br /><br /> or <br /><br /><i>[htmlentities({my/xpath})]</i><br /><br /> or <br /><br /><i>[htmlspecialchars_decode({my/xpath})]</i><br /><br /> to decode or encode HTML in your file.">?</a>
 												</div>	
 											</div>				
 										</div>
@@ -115,7 +119,12 @@
 					
 				<?php									
 
-					if ( in_array('main', $visible_sections) ) do_action('pmxi_extend_options_main', $post_type, $post);
+					if ( in_array('main', $visible_sections) ) {
+                        if ( in_array($post_type, ['comments', 'reviews']) ) {
+                            include( 'template/_comments_main_template.php' );
+                        }
+                        do_action('pmxi_extend_options_main', $post_type, $post);
+                    }
 
 					if ( in_array('featured', $visible_sections) ) {
 						$is_images_section_enabled = apply_filters('wp_all_import_is_images_section_enabled', true, $post_type);						
@@ -130,6 +139,9 @@
 						if ( $post_type == 'taxonomies' ){
 							include( 'template/_term_meta_template.php' );
 						}
+						elseif ( in_array($post_type, ['comments', 'reviews']) ) {
+                            include( 'template/_comments_meta_template.php' );
+                        }
 						else{
 							include( 'template/_custom_fields_template.php' );
 						}
@@ -145,7 +157,7 @@
 						if ( $post_type == 'taxonomies' ) {
 							include('template/_term_other_template.php');
 						}
-						else{
+						elseif ( !in_array($post_type, ['comments', 'reviews']) ) {
 							include( 'template/_other_template.php' );
 						}
 						do_action('pmxi_extend_options_other', $post_type, $post);
@@ -159,37 +171,29 @@
 					$uploads = wp_upload_dir();
 					$functions = $uploads['basedir'] . DIRECTORY_SEPARATOR . WP_ALL_IMPORT_UPLOADS_BASE_DIRECTORY . DIRECTORY_SEPARATOR . 'functions.php';
 				    $functions = apply_filters( 'import_functions_file_path', $functions );
-					$functions_content = file_get_contents($functions);
-
-					?>
-					<div class="wpallimport-collapsed closed wpallimport-section">
-						<div class="wpallimport-content-section">
-							<div class="wpallimport-collapsed-header">
-								<h3><?php _e('Function Editor', 'wp_all_import_plugin'); ?></h3>	
-							</div>
-							<div class="wpallimport-collapsed-content" style="padding: 0;">
-								<div class="wpallimport-collapsed-content-inner">									
-
-									<textarea id="wp_all_import_code" name="wp_all_import_code"><?php echo (empty($functions_content)) ? "<?php\n\n?>": esc_textarea($functions_content);?></textarea>						
-
-									<div class="input" style="margin-top: 10px;">
-
-										<div class="input" style="display:inline-block; margin-right: 20px;">
-											<input type="button" class="button-primary wp_all_import_save_functions" value="<?php _e("Save Functions", 'wp_all_import_plugin'); ?>"/>							
-											<a href="#help" class="wpallimport-help" title="<?php printf(__("Add functions here for use during your import. You can access this file at %s", "wp_all_import_plugin"), preg_replace("%.*wp-content%", "wp-content", $functions));?>" style="top: 0;">?</a>
-											<div class="wp_all_import_functions_preloader"></div>
-										</div>						
-										<div class="input wp_all_import_saving_status" style="display:inline-block;">
-
-										</div>
-
-									</div>
-
-								</div>
-							</div>
-						</div>
-					</div>
-				
+				    if (@file_exists($functions) && PMXI_Plugin::$is_php_allowed):
+                        $functions_content = file_get_contents($functions); ?>
+                        <div class="wpallimport-collapsed closed wpallimport-section">
+                            <div class="wpallimport-content-section">
+                                <div class="wpallimport-collapsed-header">
+                                    <h3><?php _e('Function Editor', 'wp_all_import_plugin'); ?></h3>
+                                </div>
+                                <div class="wpallimport-collapsed-content" style="padding: 0;">
+                                    <div class="wpallimport-collapsed-content-inner">
+                                        <textarea id="wp_all_import_code" name="wp_all_import_code"><?php echo (empty($functions_content)) ? "<?php\n\n?>": esc_textarea($functions_content);?></textarea>
+                                        <div class="input" style="margin-top: 10px;">
+                                            <div class="input" style="display:inline-block; margin-right: 20px;">
+                                                <input type="button" class="button-primary wp_all_import_save_functions" value="<?php _e("Save Functions", 'wp_all_import_plugin'); ?>"/>
+                                                <a href="#help" class="wpallimport-help" title="<?php printf(__("Add functions here for use during your import. You can access this file at %s", "wp_all_import_plugin"), preg_replace("%.*wp-content%", "wp-content", $functions));?>" style="top: 0;">?</a>
+                                                <div class="wp_all_import_functions_preloader"></div>
+                                            </div>
+                                            <div class="input wp_all_import_saving_status" style="display:inline-block;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif;?>
 				<hr>
 
                 <div class="input wpallimport-section" style="padding-bottom: 8px; padding-left: 8px;">

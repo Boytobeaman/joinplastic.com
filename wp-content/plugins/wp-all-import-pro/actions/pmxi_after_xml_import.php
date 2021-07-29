@@ -15,7 +15,22 @@ function pmxi_pmxi_after_xml_import( $import_id, $import )
         }
         delete_option('wp_all_import_taxonomies_hierarchy_' . $import_id);
     }
-    if ( ! in_array($import->options['custom_type'], array('taxonomies', 'import_users')) ) {
+    if (in_array($import->options['custom_type'], ['comments', 'reviews'])) {
+        $parent_comments = get_option('wp_all_import_comments_hierarchy_' . $import_id);
+        if (!empty($parent_comments)){
+            foreach ($parent_comments as $comment_id => $pcomment){
+                $parent_comment = get_comment($pcomment);
+                if (!empty($parent_comment) && !is_wp_error($parent_comment)){
+                    wp_update_comment(array(
+                        'comment_ID' => $comment_id,
+                        'comment_parent' => $parent_comment->comment_ID,
+                    ));
+                }
+            }
+        }
+        delete_option('wp_all_import_taxonomies_hierarchy_' . $import_id);
+    }
+    if ( ! in_array($import->options['custom_type'], array('taxonomies', 'import_users', 'shop_customer', 'comments', 'reviews')) ) {
         $custom_type = get_post_type_object( $import->options['custom_type'] );
         if ( ! empty($custom_type) && $custom_type->hierarchical ){
             $parent_posts = get_option('wp_all_import_posts_hierarchy_' . $import_id);
@@ -31,24 +46,45 @@ function pmxi_pmxi_after_xml_import( $import_id, $import )
                 }
             }
             delete_option('wp_all_import_posts_hierarchy_' . $import_id);
-
-	        // Update term count after import process is complete.
-	        foreach ( (array) get_object_taxonomies( $import->options['custom_type'] ) as $taxonomy ) {
-		        $term_ids = get_terms(
-			        array(
-				        'taxonomy'   => $taxonomy,
-				        'hide_empty' => false,
-				        'fields' => 'ids',
-			        )
-                );
-                if ( ! empty( $term_ids ) ) {
-                    wp_update_term_count_now( $term_ids, $taxonomy );
-                }
-	        }
         }
 
-		// Update post count only once after import process is completed.
-        wp_all_import_update_post_count();
+        $recount_terms_after_import = TRUE;
+        $recount_terms_after_import = apply_filters('wp_all_import_recount_terms_after_import', $recount_terms_after_import, $import_id);
+        if ($recount_terms_after_import) {
+            // Update term count after import process is complete.
+            $taxonomies = get_object_taxonomies( $import->options['custom_type'] );
+            if (!empty($taxonomies)) {
+                foreach ( (array) $taxonomies as $taxonomy ) {
+                    $term_ids = get_terms(
+                        array(
+                            'taxonomy'   => $taxonomy,
+                            'hide_empty' => false,
+                            'fields' => 'tt_ids',
+                        )
+                    );
+                    if ( ! empty( $term_ids ) ) {
+                        wp_update_term_count_now( $term_ids, $taxonomy );
+                    }
+                }
+            }
+
+            // Update post count only once after import process is completed.
+            wp_all_import_update_post_count();
+        }
+    }
+
+    // Re-count post comments.
+    if ( in_array($import->options['custom_type'], array('comments', 'reviews')) ) {
+        $recount_comments_after_import = TRUE;
+        $recount_comments_after_import = apply_filters('wp_all_import_recount_comments_after_import', $recount_comments_after_import, $import_id);
+        if ($recount_comments_after_import) {
+            $comment_posts = get_option('wp_all_import_comment_posts_' . $import_id);
+            if (!empty($comment_posts)) {
+                foreach ($comment_posts as $comment_post) {
+                    wp_update_comment_count_now($comment_post);
+                }
+            }
+        }
     }
 
     // Add removed action during import.

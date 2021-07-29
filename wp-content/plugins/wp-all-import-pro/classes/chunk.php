@@ -285,7 +285,7 @@ class PMXI_Chunk {
 
                     if ($this->loop < $this->options['pointer']){
                       $this->loop++;                              
-                      continue;
+                      continue(2);
                     }                
                     
                     $xml = @$this->reader->readOuterXML();                  
@@ -324,7 +324,7 @@ class PMXI_Chunk {
       }
     }
 
-    return ( ! empty($xml) ) ? self::removeColonsFromRSS(preg_replace('%xmlns.*=\s*([\'"&quot;]).*\1%sU', '', $xml)) : false;
+    return ( ! empty($xml) ) ? self::removeColonsFromRSS(preg_replace('%xmlns\s*=\s*([\'"]).*\1%sU', '', $xml)) : false;
 
   }  
 

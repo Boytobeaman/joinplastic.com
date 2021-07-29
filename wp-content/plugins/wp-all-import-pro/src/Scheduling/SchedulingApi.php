@@ -10,6 +10,8 @@ use Wpai\Scheduling\Exception\SchedulingHttpException;
  */
 class SchedulingApi
 {
+    const TIMEOUT = 30;
+
     /**
      * @var
      */
@@ -29,12 +31,21 @@ class SchedulingApi
      */
     public function checkConnection()
     {
-        $pingBackUrl = $this->getApiUrl('connection').'?url='.urlencode(get_site_url('admin-ajax.php'));
+
+        if(is_multisite()) {
+            $url = get_site_url(get_current_blog_id());
+        } else {
+            $url = get_site_url('admin-ajax.php');
+        }
+
+        $pingBackUrl = $this->getApiUrl('connection').'?url='.urlencode($url);
+
 
         $response = wp_remote_request(
             $pingBackUrl,
             array(
-                'method' => 'GET'
+                'method' => 'GET',
+                'timeout' => self::TIMEOUT
             )
         );
 
@@ -63,7 +74,8 @@ class SchedulingApi
                 '&endpoint='.urlencode(get_site_url())),
             array(
                 'method' => 'GET',
-                'headers' => $this->getHeaders()
+                'headers' => $this->getHeaders(),
+                'timeout' => self::TIMEOUT
             )
         );
 
@@ -84,7 +96,8 @@ class SchedulingApi
             $this->getApiUrl('schedules/' . $scheduleId),
             array(
                 'method' => 'GET',
-                'headers' => $this->getHeaders()
+                'headers' => $this->getHeaders(),
+                'timeout' => self::TIMEOUT
             )
         );
     }
@@ -102,7 +115,8 @@ class SchedulingApi
             array(
                 'method' => 'PUT',
                 'headers' => $this->getHeaders(),
-                'body' => json_encode($scheduleData)
+                'body' => json_encode($scheduleData),
+                'timeout' => self::TIMEOUT
             )
         );
 
@@ -122,7 +136,8 @@ class SchedulingApi
             $this->getApiUrl('schedules/' . $scheduleId),
             array(
                 'method' => 'DELETE',
-                'headers' => $this->getHeaders()
+                'headers' => $this->getHeaders(),
+                'timeout' => self::TIMEOUT
             )
         );
     }
@@ -141,7 +156,8 @@ class SchedulingApi
             array(
                 'method' => 'POST',
                 'headers' => $this->getHeaders(),
-                'body' => json_encode($scheduleTime)
+                'body' => json_encode($scheduleTime),
+                'timeout' => self::TIMEOUT
             ));
 
         if($response instanceof \WP_Error) {
@@ -149,6 +165,28 @@ class SchedulingApi
         }
 
         return $response;
+    }
+
+    public function disableSchedule($remoteScheduleId)
+    {
+        wp_remote_request(
+            $this->getApiUrl('schedules/' . $remoteScheduleId . '/disable'),
+            array(
+                'method' => 'DELETE',
+                'headers' => $this->getHeaders()
+            )
+        );
+    }
+
+    public function enableSchedule($scheduleId)
+    {
+        wp_remote_request(
+            $this->getApiUrl('schedules/' . $scheduleId . '/enable'),
+            array(
+                'method' => 'POST',
+                'headers' => $this->getHeaders()
+            )
+        );
     }
 
     /**

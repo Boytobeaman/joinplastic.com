@@ -51,11 +51,11 @@
 									<div class="switcher-target-<?php echo $section_slug; ?>search_existing_images" style="padding-left:23px;">
                                         <div class="search_through_the_media_library_logic">
                                             <div class="input">
-                                                <input type="radio" id="<?php echo $section_slug; ?>search_existing_images_logic_url" name="<?php echo $section_slug; ?>search_existing_images_logic" value="by_url" <?php echo ( "by_url" == $post['search_existing_images_logic'] ) ? 'checked="checked"': '' ?>/>
+                                                <input type="radio" id="<?php echo $section_slug; ?>search_existing_images_logic_url" name="<?php echo $section_slug; ?>search_existing_images_logic" value="by_url" <?php echo ( "by_url" == $post[$section_slug . 'search_existing_images_logic'] ) ? 'checked="checked"': '' ?>/>
                                                 <label for="<?php echo $section_slug; ?>search_existing_images_logic_url"><?php _e('Match image by URL', 'wp_all_import_plugin') ?></label>
                                             </div>
                                             <div class="input">
-                                                <input type="radio" id="<?php echo $section_slug; ?>search_existing_images_logic_filename" name="<?php echo $section_slug; ?>search_existing_images_logic" value="by_filename" <?php echo ( "by_filename" == $post['search_existing_images_logic'] ) ? 'checked="checked"': '' ?>/>
+                                                <input type="radio" id="<?php echo $section_slug; ?>search_existing_images_logic_filename" name="<?php echo $section_slug; ?>search_existing_images_logic" value="by_filename" <?php echo ( "by_filename" == $post[$section_slug . 'search_existing_images_logic'] ) ? 'checked="checked"': '' ?>/>
                                                 <label for="<?php echo $section_slug; ?>search_existing_images_logic_filename"><?php _e('Match image by filename', 'wp_all_import_plugin') ?></label>
                                             </div>
                                         </div>
@@ -195,7 +195,7 @@
 	<ul>
 		<li><?php _e('WP All Import will automatically ignore elements with blank image URLs/filenames.', 'wp_all_import_plugin'); ?></li>
 		<li><?php _e('WP All Import must download the images to your server. You can\'t have images in a Gallery that are referenced by external URL. That\'s just how WordPress works.', 'wp_all_import_plugin'); ?></li>
-		<li><?php printf(__('Importing a variable number of images can be done using a <a href="%s" target="_blank">FOREACH LOOP</a>', 'wp_all_import_plugin'), 'http://www.wpallimport.com/documentation/step-3/template-syntax/'); ?></li>
+		<li><?php printf(__('Importing a variable number of images can be done using a <a href="%s" target="_blank">FOREACH LOOP</a>', 'wp_all_import_plugin'), 'https://www.wpallimport.com/documentation/developers/custom-code/foreach-loops/'); ?></li>
 		<li><?php printf(__('For more information check out our <a href="%s" target="_blank">comprehensive documentation</a>', 'wp_all_import_plugin'), 'http://www.wpallimport.com/documentation/'); ?></li>
 	</ul>
 </div>

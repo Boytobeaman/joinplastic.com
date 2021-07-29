@@ -19,7 +19,8 @@ function pmxi_wp_ajax_auto_detect_sf(){
 	if ($fieldName) {
 
 	    switch ($post_type){
-            case 'import_users':
+			case 'import_users':
+			case 'shop_customer':
                 $values = $wpdb->get_results("
                     SELECT DISTINCT usermeta.meta_value
                     FROM ".$wpdb->usermeta." as usermeta
@@ -31,6 +32,14 @@ function pmxi_wp_ajax_auto_detect_sf(){
                     SELECT DISTINCT termmeta.meta_value
                     FROM ".$wpdb->termmeta." as termmeta
                     WHERE termmeta.meta_key='".$fieldName."'
+                ", ARRAY_A);
+                break;
+            case 'reviews':
+            case 'comments':
+                $values = $wpdb->get_results("
+                    SELECT DISTINCT commentmeta.meta_value
+                    FROM ".$wpdb->commentmeta." as commentmeta
+                    WHERE commentmeta.meta_key='".$fieldName."'
                 ", ARRAY_A);
                 break;
             default:
